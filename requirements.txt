@@ -1,0 +1,8 @@
+Flask
+flask-cors
+flasgger
+APScheduler
+pytz
+gunicorn
+requests
+psycopg2-binary
