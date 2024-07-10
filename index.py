@@ -1,5 +1,5 @@
 import psycopg2
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, redirect
 from flask_cors import CORS
 from flasgger import Swagger, swag_from
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -7,27 +7,33 @@ from apscheduler.triggers.cron import CronTrigger
 from pytz import timezone
 from api import get_leetcode_user_data
 from models import insert_user_data, create_database
+import os
 
 app = Flask(__name__)
 swagger = Swagger(app)
 CORS(app)
 
+# Database connection parameters
+db_params = {
+    'host': os.environ.get('HOST'),
+    'dbname': os.environ.get('DBNAME'),
+    'user': os.environ.get('USER'),
+    'password': os.environ.get('PASSWD'),
+    'sslmode': "require"
+}
 
 SECRET_TOKEN = "secret"
+
+def get_database_connection():
+    conn = psycopg2.connect(**db_params)
+    return conn
 
 def update_leetcode_data():
     '''
     Function to update user data in the database
     '''
-    print('Job started...')
     try:
-        conn = psycopg2.connect(
-        host="ep-flat-block-a5w9o2vm.us-east-2.aws.neon.tech",
-        dbname="leetcode",
-        user="leetcode_owner",
-        password="kMxY5DoHO7Np",
-        sslmode="require"
-    )
+        conn = get_database_connection()
         cursor = conn.cursor()
 
         cursor.execute('SELECT username FROM user_submissions')
@@ -49,15 +55,19 @@ def update_leetcode_data():
         print('Data updated successfully')
     except Exception as e:
         print(f'Error updating data: {e}')
-      
-    print('Job finished.')
+
 def start_scheduler():
-  # Scheduler configuration
-  scheduler = BackgroundScheduler()
-  ist_timezone = timezone('Asia/Kolkata')
-  trigger = CronTrigger(hour=0, minute=0, timezone=ist_timezone)    # Run at midnight IST every day
-  scheduler.add_job(update_leetcode_data, trigger)
-  scheduler.start()
+    # Scheduler configuration
+    scheduler = BackgroundScheduler()
+    ist_timezone = timezone('Asia/Kolkata')
+    trigger = CronTrigger(hour=0, minute=0, timezone=ist_timezone)    # Run at midnight IST every day
+    scheduler.add_job(update_leetcode_data, trigger)
+    scheduler.start()
+
+
+@app.route("/")
+def index():
+    return redirect('/health'), 302
 
 @app.route('/health', methods=['GET'])
 def health_check():
@@ -69,7 +79,6 @@ def health_check():
         description: Server is up and running
     """
     return jsonify({'status': 'ok'})
-
 
 @app.route('/all_users', methods=['GET'])
 @swag_from(methods=['GET'])
@@ -96,31 +105,28 @@ def get_all_data():
               total:
                 type: integer
     """
-    conn = psycopg2.connect(
-        host="ep-flat-block-a5w9o2vm.us-east-2.aws.neon.tech",
-        dbname="leetcode",
-        user="leetcode_owner",
-        password="kMxY5DoHO7Np",
-        sslmode="require"
-    )
-    cursor = conn.cursor()
-    
-    cursor.execute('SELECT * FROM user_submissions')
-    rows = cursor.fetchall()
-    
-    data = []
-    for row in rows:
-        data.append({
-            'username': row[0],
-            'easy': row[1],
-            'medium': row[2],
-            'hard': row[3],
-            'total': row[4]
-        })
-    
-    conn.close()
-    
-    return jsonify(data)
+    try:
+        conn = get_database_connection()
+        cursor = conn.cursor()
+
+        cursor.execute('SELECT * FROM user_submissions')
+        rows = cursor.fetchall()
+
+        data = []
+        for row in rows:
+            data.append({
+                'username': row[0],
+                'easy': row[1],
+                'medium': row[2],
+                'hard': row[3],
+                'total': row[4]
+            })
+
+        conn.close()
+
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/add_user', methods=['POST'])
 @swag_from(methods=['POST'])
@@ -149,20 +155,20 @@ def add_data():
       500:
         description: Error adding data
     """
-    req_data = request.get_json()
-    username = req_data['username']
-    token = request.headers.get('Authorization')
-
-    if token != f"{SECRET_TOKEN}":
-        return jsonify({'error': 'Unauthorized Access'}), 401
-
     try:
+        req_data = request.get_json()
+        username = req_data['username']
+        token = request.headers.get('Authorization')
+
+        if token != f"{SECRET_TOKEN}":
+            return jsonify({'error': 'Unauthorized Access'}), 401
+
         user_data = get_leetcode_user_data(username)
         insert_user_data(user_data)
+        
         return jsonify({'message': 'Data added successfully'}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
 
 @app.route('/leaderboard/<type>', methods=['GET'])
 @swag_from(methods=['GET'])
@@ -194,35 +200,28 @@ def get_leaderboard(type):
               total:
                 type: integer
     """
-    conn = psycopg2.connect(
-        host="ep-flat-block-a5w9o2vm.us-east-2.aws.neon.tech",
-        dbname="leetcode",
-        user="leetcode_owner",
-        password="kMxY5DoHO7Np",
-        sslmode="require"
-    )
-    cursor = conn.cursor()
     try:
-      cursor.execute(f'SELECT * FROM user_submissions ORDER BY {type} DESC')
-      rows = cursor.fetchall()
-      
-      leaderboard_data = []
-      for row in rows:
-          leaderboard_data.append({
-              'username': row[0],
-              'easy': row[1],
-              'medium': row[2],
-              'hard': row[3],
-              'total': row[4]
-          })
-      
-      conn.close()
-      
-    except psycopg2.Error as e:
-      return jsonify({'msg': 'Use valid type - easy, meadium, hard, total'}), 500
-    
-    return jsonify(leaderboard_data)
+        conn = get_database_connection()
+        cursor = conn.cursor()
 
+        cursor.execute(f'SELECT * FROM user_submissions ORDER BY {type} DESC')
+        rows = cursor.fetchall()
+
+        leaderboard_data = []
+        for row in rows:
+            leaderboard_data.append({
+                'username': row[0],
+                'easy': row[1],
+                'medium': row[2],
+                'hard': row[3],
+                'total': row[4]
+            })
+
+        conn.close()
+
+        return jsonify(leaderboard_data)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     create_database()

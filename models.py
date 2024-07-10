@@ -1,14 +1,22 @@
 import psycopg2
 
+# Database connection parameters
+db_params = {
+    'host': "ep-flat-block-a5w9o2vm.us-east-2.aws.neon.tech",
+    'dbname': "leetcode",
+    'user': "leetcode_owner",
+    'password': "kMxY5DoHO7Np",
+    'sslmode': "require"
+}
+
+# Function to establish a database connection
+def get_database_connection():
+    conn = psycopg2.connect(**db_params)
+    return conn
+
 # Function to create a database and table
 def create_database():
-    conn = psycopg2.connect(
-        host="ep-flat-block-a5w9o2vm.us-east-2.aws.neon.tech",
-        dbname="leetcode",
-        user="leetcode_owner",
-        password="kMxY5DoHO7Np",
-        sslmode="require"
-    )
+    conn = get_database_connection()
     cursor = conn.cursor()
 
     cursor.execute('''
@@ -26,13 +34,7 @@ def create_database():
 
 # Function to insert user data into the database
 def insert_user_data(user_data):
-    conn = psycopg2.connect(
-        host="ep-flat-block-a5w9o2vm.us-east-2.aws.neon.tech",
-        dbname="leetcode",
-        user="leetcode_owner",
-        password="kMxY5DoHO7Np",
-        sslmode="require"
-    )
+    conn = get_database_connection()
     cursor = conn.cursor()
 
     username = user_data['Username']
@@ -51,8 +53,31 @@ def insert_user_data(user_data):
     conn.commit()
     conn.close()
 
+# Function to fetch all user data from the database
+def get_all_user_data():
+    conn = get_database_connection()
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT * FROM user_submissions')
+    rows = cursor.fetchall()
+
+    data = []
+    for row in rows:
+        data.append({
+            'username': row[0],
+            'easy': row[1],
+            'medium': row[2],
+            'hard': row[3],
+            'total': row[4]
+        })
+
+    conn.close()
+    return data
+
 # Example usage:
 if __name__ == "__main__":
+
+    # just for testing purposes
     # Create the database and table if they don't exist
     create_database()
 
@@ -69,4 +94,7 @@ if __name__ == "__main__":
 
     # Insert example user data into the database
     insert_user_data(example_user_data)
-    print("done")
+
+    # Fetch all user data and print
+    all_user_data = get_all_user_data()
+    print(all_user_data)
