@@ -1,11 +1,12 @@
 import psycopg2
+import os
 
 # Database connection parameters
 db_params = {
-    'host': "ep-flat-block-a5w9o2vm.us-east-2.aws.neon.tech",
-    'dbname': "leetcode",
-    'user': "leetcode_owner",
-    'password': "kMxY5DoHO7Np",
+    'host': os.environ.get('HOST'),
+    'dbname': os.environ.get('DBNAME'),
+    'user': os.environ.get('USER'),
+    'password': os.environ.get('PASSWD'),
     'sslmode': "require"
 }
 
