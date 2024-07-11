@@ -6,6 +6,5 @@ pytz
 gunicorn
 requests
 psycopg2-binary
-random
 json
 datetime
