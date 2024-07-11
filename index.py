@@ -2,9 +2,6 @@ import psycopg2
 from flask import Flask, jsonify, request, redirect
 from flask_cors import CORS
 from flasgger import Swagger, swag_from
-from apscheduler.schedulers.background import BackgroundScheduler
-from apscheduler.triggers.cron import CronTrigger
-from pytz import timezone
 from api import get_leetcode_user_data
 from models import insert_user_data, create_database
 import os
@@ -55,14 +52,6 @@ def update_leetcode_data():
         print('Data updated successfully')
     except Exception as e:
         print(f'Error updating data: {e}')
-
-def start_scheduler():
-    # Scheduler configuration
-    scheduler = BackgroundScheduler()
-    ist_timezone = timezone('Asia/Kolkata')
-    trigger = CronTrigger(hour=0, minute=0, timezone=ist_timezone)    # Run at midnight IST every day
-    scheduler.add_job(update_leetcode_data, trigger)
-    scheduler.start()
 
 
 @app.route("/")
@@ -225,5 +214,4 @@ def get_leaderboard(type):
 
 if __name__ == '__main__':
     create_database()
-    start_scheduler()
     app.run(host='0.0.0.0', debug=True)
