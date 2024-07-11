@@ -1,14 +1,22 @@
+import os
 import psycopg2
 from flask import Flask, jsonify, request, redirect
 from flask_cors import CORS
 from flasgger import Swagger, swag_from
+import random
+import requests
+import json
+import datetime
 from api import get_leetcode_user_data
 from models import insert_user_data, create_database
-import os
 
 app = Flask(__name__)
 swagger = Swagger(app)
 CORS(app)
+
+# Load database IDs from JSON file
+with open('database_ids.json') as f:
+    DATABASE_IDS = json.load(f)['database_ids']
 
 # Database connection parameters
 db_params = {
@@ -212,6 +220,44 @@ def get_leaderboard(type):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/daily', methods=['GET'])
+def get_random_problems():
+    # Get the current date and use it as the seed
+    today = datetime.date.today()
+    seed = int(today.strftime('%Y%m%d'))
+    random.seed(seed)
+
+    problems = {'Algorithms': [], 'Database': []}
+
+    # Fetch 2 random algorithm problems
+    while len(problems['Algorithms']) < 2:
+        random_id = random.randint(1, 3215)
+        response = requests.get(f'https://lcid.cc/info/{random_id}')
+        if response.status_code == 200:
+            data = response.json()
+            if data['categoryTitle'] == 'Algorithms' and not data['paidOnly']:
+                problem_info = {
+                    'title': data['title'],
+                    'titleSlug': data['titleSlug']
+                }
+                if problem_info not in problems['Algorithms']:
+                    problems['Algorithms'].append(problem_info)
+
+    # Fetch 1 random database problem
+    while len(problems['Database']) < 1:
+        random_id = random.choice(DATABASE_IDS)
+        response = requests.get(f'https://lcid.cc/info/{random_id}')
+        if response.status_code == 200:
+            data = response.json()
+            if data['categoryTitle'] == 'Database' and not data['paidOnly']:
+                problem_info = {
+                    'title': data['title'],
+                    'titleSlug': data['titleSlug']
+                }
+                if problem_info not in problems['Database']:
+                    problems['Database'].append(problem_info)
+
+    return jsonify(problems)
 if __name__ == '__main__':
     create_database()
     app.run(host='0.0.0.0', debug=True)

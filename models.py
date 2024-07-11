@@ -75,6 +75,8 @@ def get_all_user_data():
     conn.close()
     return data
 
+
+
 # Example usage:
 if __name__ == "__main__":
 
