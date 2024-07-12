@@ -1,6 +1,7 @@
 import psycopg2
 import os
 
+
 # Database connection parameters
 db_params = {
     'host': os.environ.get('HOST'),

@@ -1,6 +1,7 @@
 from models import get_database_connection
 from api import get_leetcode_user_data
 
+
 def update_leetcode_data():
     '''
     Function to update user data in the database
@@ -28,6 +29,3 @@ def update_leetcode_data():
         print('Data updated successfully')
     except Exception as e:
         print(f'Error updating data: {e}')
-
-
-update_leetcode_data()

@@ -14,7 +14,7 @@
     ],
     "crons": [
         {
-            "path": "/api/cron.py",
+            "path": "/update",
             "schedule": "30 18 * * *"
         }
     ]

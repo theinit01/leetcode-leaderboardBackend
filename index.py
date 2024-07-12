@@ -8,58 +8,19 @@ import requests
 import json
 import datetime
 from api import get_leetcode_user_data
-from models import insert_user_data, create_database
+from models import insert_user_data, create_database, get_database_connection
+from cronapi.cron import update_leetcode_data
 
 app = Flask(__name__)
 swagger = Swagger(app)
 CORS(app)
 
+
 # Load database IDs from JSON file
 with open('database_ids.json') as f:
     DATABASE_IDS = json.load(f)['database_ids']
 
-# Database connection parameters
-db_params = {
-    'host': os.environ.get('HOST'),
-    'dbname': os.environ.get('DBNAME'),
-    'user': os.environ.get('USER'),
-    'password': os.environ.get('PASSWD'),
-    'sslmode': "require"
-}
-
 SECRET_TOKEN = "secret"
-
-def get_database_connection():
-    conn = psycopg2.connect(**db_params)
-    return conn
-
-def update_leetcode_data():
-    '''
-    Function to update user data in the database
-    '''
-    try:
-        conn = get_database_connection()
-        cursor = conn.cursor()
-
-        cursor.execute('SELECT username FROM user_submissions')
-        rows = cursor.fetchall()
-
-        for row in rows:
-            username = row[0]
-            user_data = get_leetcode_user_data(username)
-            easy = user_data['Accepted Submissions'].get('Easy', 0)
-            medium = user_data['Accepted Submissions'].get('Medium', 0)
-            hard = user_data['Accepted Submissions'].get('Hard', 0)
-            total = user_data['Accepted Submissions'].get('All', 0)
-            cursor.execute(
-                'UPDATE user_submissions SET easy = %s, medium = %s, hard = %s, total = %s WHERE username = %s',
-                (easy, medium, hard, total, username))
-            conn.commit()
-
-        conn.close()
-        print('Data updated successfully')
-    except Exception as e:
-        print(f'Error updating data: {e}')
 
 
 @app.route("/")
@@ -258,6 +219,11 @@ def get_random_problems():
                     problems['Database'].append(problem_info)
 
     return jsonify(problems)
+
+@app.route('/update', methods=['GET'])
+def update_data():
+    update_leetcode_data()
+    return jsonify({'message': 'Data updated successfully'}), 200
 if __name__ == '__main__':
     create_database()
     app.run(host='0.0.0.0', debug=True)
