@@ -14,8 +14,11 @@ def update_leetcode_data():
         rows = cursor.fetchall()
 
         for row in rows:
-            username = row[0]
-            user_data = get_leetcode_user_data(username)
+            try:
+                username = row[0]
+                user_data = get_leetcode_user_data(username)
+            except:
+                continue
             easy = user_data['Accepted Submissions'].get('Easy', 0)
             medium = user_data['Accepted Submissions'].get('Medium', 0)
             hard = user_data['Accepted Submissions'].get('Hard', 0)
