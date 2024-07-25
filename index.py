@@ -183,18 +183,27 @@ def get_leaderboard(type):
 
 @app.route('/daily', methods=['GET'])
 def get_random_problems():
-    # Get the current date and use it as the seed
-    today = datetime.date.today()
-    seed = int(today.strftime('%Y%m%d'))
-    random.seed(seed)
+
+
+    def get_valid_problem(category, totalProblems):
+      max_attempts = 5
+      for attempt in range(max_attempts):
+          today = datetime.date.today()
+          seed = int(today.strftime('%Y%m%d')) + attempt
+          random.seed(seed)
+          skip = random.randint(0, totalProblems)
+          problem = get_problems_list(category, skip)
+          if problem:
+              return problem
+      raise Exception(f"Unable to find a valid problem for category {category}")
 
     problems = {
-        'Arrays': get_problems_list('array', random.randint(0, 1697)),  
-        'String': get_problems_list('string', random.randint(0, 711)),  
-        'Tree': get_problems_list('tree', random.randint(0, 230)),
-        'Graph': get_problems_list('graph', random.randint(0, 143)),
-        'Dynamic Programming': get_problems_list('dynamic-programming', random.randint(0, 143)),
-        'Database': get_problems_list('database', random.randint(0, 277))
+        'Arrays': get_valid_problem('array', 1697),  
+        'String': get_valid_problem('string', 711),  
+        'Tree': get_valid_problem('tree', 230),
+        'Graph': get_valid_problem('graph',143),
+        'Dynamic Programming': get_valid_problem('dynamic-programming', 143),
+        'Database': get_valid_problem('database',277)
     }
 
     return jsonify(problems)
