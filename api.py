@@ -51,8 +51,45 @@ def get_leetcode_user_data(username):
     return prettify_user_data(data['data']['matchedUser'])
 
 
+def get_problems_list(category, skip):
+    url = 'https://leetcode.com/graphql'
+    headers = {
+        'Content-Type': 'application/json'
+    }
+
+    query = '''query problemsetQuestionList($categorySlug: String, $limit: Int, $skip: Int, $filters: QuestionListFilterInput) { 
+    problemsetQuestionList: questionList(categorySlug: $categorySlug limit: $limit skip: $skip filters: $filters) { total: totalNum questions: data {
+    frontendQuestionId: questionFrontendId isFavor paidOnly: isPaidOnly title titleSlug topicTags { name slug } } } }'''
+
+    variables = {
+        'categorySlug': 'all-code-essentials',
+        'skip': skip,
+        'limit': 1,
+        "filters": {
+            "tags": [
+                category
+            ]
+        }
+    }
+
+    response = requests.post(url, json={'query': query, 'variables': variables}, headers=headers)
+
+    if response.status_code != 200:
+        raise Exception(f"Query failed with status code {response.status_code}: {response.text}")
+
+    data = response.json()
+
+    if 'errors' in data:
+        raise Exception(f"Errors returned: {data['errors']}")
+    
+    question_data = data['data']['problemsetQuestionList']['questions'][0]
+    return {
+        'title': question_data['title'],
+        'titleSlug': question_data['titleSlug']
+    }
+
 if __name__ == '__main__':
     # for testing pusposes
-    username = 'theinit01'
-    user_data = get_leetcode_user_data(username)
-    print(user_data)
+    category = 'database'
+    problem = get_problems_list(category, 0)
+    print(problem)
