@@ -81,8 +81,12 @@ def get_problems_list(category, skip):
 
     if 'errors' in data:
         raise Exception(f"Errors returned: {data['errors']}")
-
-    return data['data']['problemsetQuestionList']['questions'][0]['titleSlug']
+    
+    question_data = data['data']['problemsetQuestionList']['questions'][0]
+    return {
+        'title': question_data['title'],
+        'titleSlug': question_data['titleSlug']
+    }
 
 if __name__ == '__main__':
     # for testing pusposes

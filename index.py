@@ -189,7 +189,7 @@ def get_random_problems():
     random.seed(seed)
 
     problems = {
-        'Arrays': get_problems_list('array', random.randint(0,1697)),  
+        'Arrays': get_problems_list('array', random.randint(0, 1697)),  
         'String': get_problems_list('string', random.randint(0, 711)),  
         'Tree': get_problems_list('tree', random.randint(0, 230)),
         'Graph': get_problems_list('graph', random.randint(0, 143)),
