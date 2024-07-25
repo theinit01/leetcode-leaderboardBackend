@@ -224,6 +224,7 @@ def get_random_problems():
 def update_data():
     update_leetcode_data()
     return jsonify({'message': 'Data updated successfully'}), 200
+
 if __name__ == '__main__':
     create_database()
     app.run(host='0.0.0.0', debug=True)

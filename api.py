@@ -88,5 +88,4 @@ if __name__ == '__main__':
     # for testing pusposes
     category = 'database'
     problem = get_problems_list(category, 0)
-
-    print(problem)
+    print(problem['data']['problemsetQuestionList']['questions'][0] ['titleSlug'])
