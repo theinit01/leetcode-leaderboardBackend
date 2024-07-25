@@ -4,10 +4,10 @@ import os
 
 # Database connection parameters
 db_params = {
-    'host': os.environ.get('HOST'),
-    'dbname': os.environ.get('DBNAME'),
-    'user': os.environ.get('USER'),
-    'password': os.environ.get('PASSWD'),
+    'host': "ep-flat-block-a5w9o2vm.us-east-2.aws.neon.tech",
+    'dbname': "leetcode",
+    'user': "leetcode_owner",
+    'password': "kMxY5DoHO7Np",
     'sslmode': "require"
 }
 

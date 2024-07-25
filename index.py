@@ -7,7 +7,7 @@ import random
 import requests
 import json
 import datetime
-from api import get_leetcode_user_data
+from api import get_leetcode_user_data, get_problems_list
 from models import insert_user_data, create_database, get_database_connection
 from cronapi.cron import update_leetcode_data
 
@@ -188,35 +188,14 @@ def get_random_problems():
     seed = int(today.strftime('%Y%m%d'))
     random.seed(seed)
 
-    problems = {'Algorithms': [], 'Database': []}
-
-    # Fetch 2 random algorithm problems
-    while len(problems['Algorithms']) < 2:
-        random_id = random.randint(1, 3215)
-        response = requests.get(f'https://lcid.cc/info/{random_id}')
-        if response.status_code == 200:
-            data = response.json()
-            if data['categoryTitle'] == 'Algorithms' and not data['paidOnly']:
-                problem_info = {
-                    'title': data['title'],
-                    'titleSlug': data['titleSlug']
-                }
-                if problem_info not in problems['Algorithms']:
-                    problems['Algorithms'].append(problem_info)
-
-    # Fetch 1 random database problem
-    while len(problems['Database']) < 1:
-        random_id = random.choice(DATABASE_IDS)
-        response = requests.get(f'https://lcid.cc/info/{random_id}')
-        if response.status_code == 200:
-            data = response.json()
-            if data['categoryTitle'] == 'Database' and not data['paidOnly']:
-                problem_info = {
-                    'title': data['title'],
-                    'titleSlug': data['titleSlug']
-                }
-                if problem_info not in problems['Database']:
-                    problems['Database'].append(problem_info)
+    problems = {
+        'Arrays': get_problems_list('array', random.randint(0,1697)),  
+        'String': get_problems_list('string', random.randint(0, 711)),  
+        'Tree': get_problems_list('tree', random.randint(0, 230)),
+        'Graph': get_problems_list('graph', random.randint(0, 143)),
+        'Dynamic Programming': get_problems_list('dynamic-programming', random.randint(0, 143)),
+        'Database': get_problems_list('database', random.randint(0, 277))
+    }
 
     return jsonify(problems)
 

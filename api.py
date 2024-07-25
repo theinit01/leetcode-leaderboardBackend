@@ -82,10 +82,10 @@ def get_problems_list(category, skip):
     if 'errors' in data:
         raise Exception(f"Errors returned: {data['errors']}")
 
-    return data
+    return data['data']['problemsetQuestionList']['questions'][0]['titleSlug']
 
 if __name__ == '__main__':
     # for testing pusposes
     category = 'database'
     problem = get_problems_list(category, 0)
-    print(problem['data']['problemsetQuestionList']['questions'][0] ['titleSlug'])
+    print(problem)
