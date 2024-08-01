@@ -191,7 +191,7 @@ def get_random_problems():
           today = datetime.date.today()
           seed = int(today.strftime('%Y%m%d')) + attempt
           random.seed(seed)
-          skip = random.randint(0, totalProblems)
+          skip = random.randint(0, totalProblems - 1)
           problem = get_problems_list(category, skip)
           if problem:
               return problem
