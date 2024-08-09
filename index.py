@@ -127,7 +127,7 @@ def add_data():
         return jsonify({'message': 'Data added successfully'}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
+        
 @app.route('/leaderboard/<type>', methods=['GET'])
 @swag_from(methods=['GET'])
 def get_leaderboard(type):
@@ -183,10 +183,8 @@ def get_leaderboard(type):
 
 @app.route('/daily', methods=['GET'])
 def get_random_problems():
-
-
     def get_valid_problem(category, totalProblems):
-      max_attempts = 5
+      max_attempts = 10
       for attempt in range(max_attempts):
           today = datetime.date.today()
           seed = int(today.strftime('%Y%m%d')) + attempt
