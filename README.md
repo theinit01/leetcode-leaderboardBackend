@@ -59,7 +59,8 @@ This project is a web application to track and display the performance of users 
 - **Frontend**: The frontend is a React application that communicates with the backend server.
 
 ### Contributions
-Contributions are welcome! Please open an issue or submit a pull request for any improvements or bug fixes.
+Contributions are welcome! Please open an issue or submit a pull request for any improvements or bug fixes. 
+Make commits to a new feature branch 
 
 ### License
 This project is licensed under the MIT License. See the [LICENSE](LICENCE) file for details.
